@@ -8,7 +8,8 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QVBoxLayout,
     QSystemTrayIcon,
-    QSpinBox
+    QSpinBox,
+    QMessageBox
 )
 from PyQt6.QtGui import QIcon, QPalette, QColor
 
@@ -92,8 +93,10 @@ class TimerPanel(QWidget):
         self.timer.start(1000)  # Start timer with 1 second interval
 
     def stop_timer(self):
-        """Stops the countdown."""
+        """Stops the countdown and shows a notification."""
         self.timer.stop()
+        self.show_notification("Timer Stopped", "The timer has been stopped.")
+        self.time_display.setText("Timer Stopped")
 
     def reset_timer(self):
         """Resets the timer to the user-defined duration."""
@@ -103,9 +106,13 @@ class TimerPanel(QWidget):
         self.main_window.setStyleSheet("background-color: #5158ff;")  # Reset background color
 
     def show_notification(self, title, message):
-        """Displays a notification."""
-        self.tray_icon.showMessage(title, message, QIcon('maps.ico'), 2000)
-
+        """Displays a notification dialog."""
+        msg_box = QMessageBox(self)
+        msg_box.setIcon(QMessageBox.Icon.Information)
+        msg_box.setText(message)
+        msg_box.setWindowTitle(title)
+        msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg_box.exec()
 
 class MyApp(QWidget):
     def __init__(self):
