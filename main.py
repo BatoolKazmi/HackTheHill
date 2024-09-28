@@ -1,7 +1,17 @@
 import sys # allows command line argument
 
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QLineEdit, QVBoxLayout, QTextEdit
-from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QLineEdit, QVBoxLayout, QTextEdit
+from PyQt6.QtGui import QIcon, QPalette, QColor
+
+class Color(QWidget):
+
+    def __init__(self, color):
+        super(Color, self).__init__()
+        self.setAutoFillBackground(True)
+
+        palette = self.palette()
+        palette.setColor(QPalette.ColorRole.Window, QColor(color))
+        self.setPalette(palette)
 
 class myApp(QWidget):
     def __init__(self):
@@ -10,21 +20,21 @@ class myApp(QWidget):
         self.setWindowIcon(QIcon('maps.ico'))
         self.resize(500, 350) # width, height (the window size)
 
-        layout = QVBoxLayout()
-        self.setLayout(layout)
+        camera = QVBoxLayout()
+        toolPanel = QVBoxLayout()
 
-        self.inputField = QLineEdit()
-        button = QPushButton("&Submit Please", clicked=self.sayHello)
-        button.clicked.connect(self.sayHello)
-        self.output = QTextEdit()
+        camera.addWidget(Color('#FCD6DC'))
+        toolPanel.addWidget(Color('#1D1C21'))
 
-        layout.addWidget(self.inputField)
-        layout.addWidget(button)
-        layout.addWidget(self.output)
+        # Create a horizontal layout to place both the camera and toolPanel side by side
+        mainLayout = QHBoxLayout()
+        mainLayout.addLayout(camera)
+        mainLayout.addLayout(toolPanel)
 
-    def sayHello(self):
-        inputText = self.inputField.text()
-        self.output.setText('Hello {0}'.format(inputText))
+        # Shows everything together
+        self.setLayout(mainLayout)
+
+
 
 
 
