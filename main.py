@@ -102,22 +102,15 @@ class MyApp(QWidget):
         super().__init__()
         self.setWindowTitle('FocoBuddy')
         self.setWindowIcon(QIcon('maps.ico'))
-        self.resize(1000, 800)  # width, height (the window size)
+        self.resize(700, 500)  # width, height (the window size)
 
         # Create the main layout (Horizontal Layout)
         mainLayout = QHBoxLayout()
-
-        # Create the camera panel layout (Vertical Layout)
-        cameraLayout = QVBoxLayout()
-        cameraLabel = QLabel(' Camera View')  # Placeholder for camera view
-        cameraLabel.setStyleSheet("background-color: grey; color: white;")
-        cameraLayout.addWidget(cameraLabel)
 
         # Create the timer panel layout
         timer_panel = TimerPanel()
 
         # Add the camera and timer panel layouts to the main layout
-        mainLayout.addLayout(cameraLayout)
         mainLayout.addWidget(timer_panel)
 
         # Set the horizontal layout as the main layout
