@@ -7,6 +7,8 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QHBoxLayout,
     QVBoxLayout,
+    QSystemTrayIcon,
+    QSpinBox
 )
 from PyQt6.QtGui import QIcon, QPalette, QColor
 
@@ -21,23 +23,28 @@ class Color(QWidget):
 
 
 class TimerPanel(QWidget):
-    def __init__(self):
+    def __init__(self, tray_icon, main_window):
         super(TimerPanel, self).__init__()
-        self.work_duration = 25 * 60  # 25 minutes in seconds
-        self.break_duration = 5 * 60  # 5 minutes in seconds
-        self.current_time = self.work_duration
-        self.in_break = False  # Track if we're in a break session
+        self.tray_icon = tray_icon  # Store the tray icon reference
+        self.main_window = main_window  # Store the main window reference
+        self.current_time = 0  # Initialize current time
 
         # Timer object
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_time)
+
+        # Work duration input
+        self.duration_input = QSpinBox(self)
+        self.duration_input.setRange(1, 120)  # Allow user to set timer from 1 to 120 minutes
+        self.duration_input.setSuffix(" min")  # Suffix for the input
+        self.duration_input.setValue(25)  # Default value
 
         # Timer display
         self.time_display = QLabel(self.format_time(self.current_time), self)
         self.time_display.setStyleSheet("font-size: 30px; color: white;")
         self.time_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Buttons for the Pomodoro Timer
+        # Buttons for the timer
         self.start_button = QPushButton('Start')
         self.start_button.clicked.connect(self.start_timer)
 
@@ -49,10 +56,15 @@ class TimerPanel(QWidget):
 
         # Layout for the timer UI
         layout = QVBoxLayout()
+        layout.addWidget(QLabel("Set Work Duration:"))
+        layout.addWidget(self.duration_input)
         layout.addWidget(self.time_display)
         layout.addWidget(self.start_button)
         layout.addWidget(self.stop_button)
         layout.addWidget(self.reset_button)
+
+        # Center all widgets in the layout
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.setLayout(layout)
 
@@ -68,39 +80,42 @@ class TimerPanel(QWidget):
             self.time_display.setText(self.format_time(self.current_time))
         else:
             self.timer.stop()
-            # Switch between work and break sessions
-            if not self.in_break:
-                self.current_time = self.break_duration
-                self.in_break = True
-                self.time_display.setText("Break Time!")
-            else:
-                self.current_time = self.work_duration
-                self.in_break = False
-                self.time_display.setText("Work Time!")
-
-            # Restart the timer
-            self.start_timer()
+            self.time_display.setText("Work Time Ended!")
+            self.show_notification("Work Time Ended!", "Time's up! Take a break!")
+            self.main_window.setStyleSheet("background-color: red;")  # Change background color
 
     def start_timer(self):
         """Starts the countdown."""
-        self.timer.start(1000) 
+        self.current_time = self.duration_input.value() * 60  # Convert minutes to seconds
+        self.time_display.setText(self.format_time(self.current_time))
+        self.main_window.setStyleSheet("background-color: red;")  # Set background color for work time
+        self.timer.start(1000)  # Start timer with 1 second interval
 
     def stop_timer(self):
         """Stops the countdown."""
         self.timer.stop()
 
     def reset_timer(self):
-        """Resets the timer to the initial work session."""
+        """Resets the timer to the user-defined duration."""
         self.timer.stop()
-        self.current_time = self.work_duration
-        self.in_break = False
+        self.current_time = self.duration_input.value() * 60
         self.time_display.setText(self.format_time(self.current_time))
+        self.main_window.setStyleSheet("background-color: #5158ff;")  # Reset background color
+
+    def show_notification(self, title, message):
+        """Displays a notification."""
+        self.tray_icon.showMessage(title, message, QIcon('maps.ico'), 2000)
 
 
 class MyApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('FocoBuddy')
+
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(QIcon('maps.ico')) 
+        self.tray_icon.setVisible(True)
+
         self.setWindowIcon(QIcon('maps.ico'))
         self.resize(700, 500)  # width, height (the window size)
 
@@ -108,19 +123,16 @@ class MyApp(QWidget):
         mainLayout = QHBoxLayout()
 
         # Create the timer panel layout
-        timer_panel = TimerPanel()
+        timer_panel = TimerPanel(self.tray_icon, self)
 
-        # Add the camera and timer panel layouts to the main layout
-        mainLayout.addWidget(timer_panel)
+        # Center the timer panel in the main layout
+        mainLayout.addWidget(timer_panel, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # Set the horizontal layout as the main layout
         self.setLayout(mainLayout)
 
         # Set styles for the main application window
         self.setStyleSheet('''
-            QWidget {
-                background-color: #5158ff; 
-            }
             QPushButton, QLabel {
                 color: black;  
             }
@@ -134,10 +146,9 @@ class MyApp(QWidget):
             }
         ''')
 
-
 # Initialize the application
 app = QApplication(sys.argv)
-app.setStyleSheet('''
+app.setStyleSheet(''' 
                   QWidget {
                   font-size: 5em;      
                   color: blue; 
