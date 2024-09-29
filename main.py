@@ -215,7 +215,7 @@ class VideoThread(QThread):
 
                     # cv2.imshow("face detection", image)
 
-                    self.change_pixmap_signal.emit(image)
+                    self.change_pixmap_signal.emit(cv2.flip(image, 1))
 
                     if cv2.waitKey(10) & 0xFF == ord("q"):
                         break
