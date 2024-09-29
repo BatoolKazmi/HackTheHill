@@ -234,19 +234,12 @@ class VideoThread(QThread):
             cv2.destroyAllWindows()
 
         # capture from web cam
-<<<<<<< HEAD
+
         cap = cv2.VideoCapture(0)
         while self._run_flag:
             ret, cv_img = cap.read()
             if ret:
                 self.change_pixmap_signal.emit(cv_img)
-=======
-        # cap = cv2.VideoCapture(1)
-        # while self._run_flag:
-        #     ret, cv_img = cap.read()
-        #     if ret:
-        #         self.change_pixmap_signal.emit(cv_img)
->>>>>>> c7ad5a2c05c75568ea97c510a6b444799255cd64
 
     def stop(self):
         """Sets run flag to False and waits for thread to finish"""
