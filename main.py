@@ -1,186 +1,95 @@
-import sys
-from PyQt6.QtCore import QTimer, Qt
-from PyQt6.QtWidgets import (
-    QApplication,
-    QLabel,
-    QWidget,
-    QPushButton,
-    QHBoxLayout,
-    QVBoxLayout,
-    QSystemTrayIcon,
-    QSpinBox,
-    QMessageBox
-)
-from PyQt6.QtGui import QIcon, QPalette, QColor
+from PyQt6 import QtWidgets, QtGui, QtCore
+from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QHBoxLayout
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QThread
+from custom_widgets import *
 from qt_material import apply_stylesheet
 
-class Color(QWidget):
-    def __init__(self, color):
-        super(Color, self).__init__()
-        self.setAutoFillBackground(True)
-        palette = self.palette()
-        palette.setColor(QPalette.ColorRole.Window, QColor(color))
-        self.setPalette(palette)
+import sys
+import cv2
+import numpy
 
-class TimerPanel(QWidget):
-    def __init__(self, tray_icon, main_window):
-        super(TimerPanel, self).__init__()
-        self.tray_icon = tray_icon  # Store the tray icon reference
-        self.main_window = main_window  # Store the main window reference
-        self.current_time = 0  # Initialize current time
 
-        # Timer object
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_time)
+# Subclass QMainWindow to customize your application's main window
+class MainWindow(QWidget):
+    def __init__(self):
+        # For widget initialization
+        super().__init__()
 
-        # Work duration input
-        self.duration_input = QSpinBox(self)
-        self.duration_input.setRange(1, 120)  # Allow user to set timer from 1 to 120 minutes
-        self.duration_input.setSuffix(" min")  # Suffix for the input
-        self.duration_input.setValue(25)  # Default value
+        # Window Parameters
+        self.setWindowTitle("FocoBuddy")
+        self.display_width = 640
+        self.display_height = 480
 
-        # Timer display
-        self.time_display = QLabel(self.format_time(self.current_time), self)
-        # self.time_display.setStyleSheet("font-size: 30px; color: black;")
-        self.time_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Widgets
+        self.image_label = QLabel(self)
+        self.side_menu = SideMenu()
 
-        # Buttons for the timer
-        self.start_button = QPushButton('Start')
-        self.start_button.clicked.connect(self.start_timer)
+        # Window Setup
+        hbox = QHBoxLayout()
+        hbox.addWidget(self.image_label)
+        hbox.addWidget(self.side_menu)
+        self.setLayout(hbox)
 
-        self.stop_button = QPushButton('Stop')
-        self.stop_button.clicked.connect(self.stop_timer)
+        # Make video thread
+        self.vThread = VideoThread()
+        # Connect its signal to the update_image slot
+        self.vThread.change_pixmap_signal.connect(self.update_image)
+        self.vThread.start()
 
-        self.reset_button = QPushButton('Reset')
-        self.reset_button.clicked.connect(self.reset_timer)
+    def convert_cv_qt(self, cv_img):
+        """Convert from an opencv image to QPixmap"""
+        rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+        h, w, ch = rgb_image.shape
+        bytes_per_line = ch * w
+        convert_to_Qt_format = QtGui.QImage(
+            rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format.Format_RGB888
+        )
+        p = convert_to_Qt_format.scaled(
+            self.display_width,
+            self.display_height,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.FastTransformation,
+        )
+        return QPixmap.fromImage(p)
 
-        # Layout for the timer UI
-        layout = QVBoxLayout()
-        layout.addWidget(QLabel("Set Work Duration:"))
-        layout.addWidget(self.duration_input)
-        layout.addWidget(self.time_display)
-        layout.addWidget(self.start_button)
-        layout.addWidget(self.stop_button)
-        layout.addWidget(self.reset_button)
+    @pyqtSlot(numpy.ndarray)
+    def update_image(self, cv_img):
+        """Updates the image_label with a new opencv image"""
+        qt_img = self.convert_cv_qt(cv_img)
+        self.image_label.setPixmap(qt_img)
 
-        # Center all widgets in the layout
-        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    def closeEvent(self, event):
+        self.vThread.stop()
+        event.accept
 
-        self.setLayout(layout)
 
-    def format_time(self, seconds):
-        """Formats time in mm:ss."""
-        minutes, secs = divmod(seconds, 60)
-        return f'{minutes:02}:{secs:02}'
+class VideoThread(QThread):
+    change_pixmap_signal = pyqtSignal(numpy.ndarray)
 
-    def update_time(self):
-        """Updates the timer every second."""
-        if self.current_time > 0:
-            self.current_time -= 1
-            self.time_display.setText(self.format_time(self.current_time))
-        else:
-            self.timer.stop()
-            self.time_display.setText("Work Time Ended!")
-            self.show_notification("Work Time Ended!", "Time's up! Take a break!")
-
-    def start_timer(self):
-        """Starts the countdown."""
-        self.current_time = self.duration_input.value() * 60  # Convert minutes to seconds
-        self.time_display.setText(self.format_time(self.current_time))
-        self.timer.start(1000)  # Start timer with 1 second interval
-
-    def stop_timer(self):
-        """Stops the countdown and shows a notification."""
-        self.timer.stop()
-        self.show_notification("Timer Stopped", "The timer has been stopped.")
-        self.time_display.setText("Timer Stopped")
-
-    def reset_timer(self):
-        """Resets the timer to the user-defined duration."""
-        self.timer.stop()
-        self.current_time = self.duration_input.value() * 60
-        self.time_display.setText(self.format_time(self.current_time))
-
-    def show_notification(self, title, message):
-        """Displays a notification dialog."""
-        msg_box = QMessageBox(self)
-        msg_box.setIcon(QMessageBox.Icon.Information)
-        msg_box.setText(message)
-        msg_box.setWindowTitle(title)
-        msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
-        msg_box.exec()
-
-class MyApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('FocoBuddy')
+        self._run_flag = True
 
-        self.tray_icon = QSystemTrayIcon(self)
-        # Use a default icon if 'maps.ico' is not found
-        try:
-            self.tray_icon.setIcon(QIcon('maps.ico'))  # Replace with a valid path if you have one
-        except Exception as e:
-            print(f"Icon loading failed: {e}")
-            self.tray_icon.setIcon(QIcon())  # Set a default icon
+    def run(self):
+        # capture from web cam
+        cap = cv2.VideoCapture(0)
+        while self._run_flag:
+            ret, cv_img = cap.read()
+            if ret:
+                self.change_pixmap_signal.emit(cv_img)
 
-        self.tray_icon.setVisible(True)
+    def stop(self):
+        """Sets run flag to False and waits for thread to finish"""
+        self._run_flag = False
+        self.wait()
 
-        # Set the window icon
-        try:
-            self.setWindowIcon(QIcon('maps.ico'))
-        except Exception as e:
-            print(f"Window icon loading failed: {e}")
-            self.setWindowIcon(QIcon())  # Set a default icon
 
-        self.resize(700, 500)  # width, height (the window size)
+if __name__ == "__main__":
 
-        # Create the main layout (Horizontal Layout)
-        mainLayout = QHBoxLayout()
+    app = QApplication(sys.argv)
+    apply_stylesheet(app, theme="dark_amber.xml")
 
-        # Create the timer panel layout
-        timer_panel = TimerPanel(self.tray_icon, self)
-
-        # Center the timer panel in the main layout
-        mainLayout.addWidget(timer_panel, alignment=Qt.AlignmentFlag.AlignCenter)
-
-        # Set the horizontal layout as the main layout
-        self.setLayout(mainLayout)
-
-        # Set styles for the main application window
-        # self.setStyleSheet('''
-        #     QPushButton, QLabel {
-        #         color: black;  
-        #     }
-        #     QPushButton {
-        #         background-color: #ffb3df;  
-        #         color: black;
-        #     }
-        #     QPushButton::hover {
-        #         background-color: #d260ff;
-        #         color: white;
-        #     }
-        # ''')
-
-# Initialize the application
-app = QApplication(sys.argv)
-# app.setStyleSheet(''' 
-#                   QWidget {
-#                   font-size: 5em;      
-#                   color: blue; 
-#                   }
-#                   QPushButton {
-#                     font-size: 10em;
-#                     background-color: yellow;   
-#                   }
-# ''')
-
-# Create the window
-window = MyApp()
-
-# setup stylesheet
-apply_stylesheet(app, theme='dark_amber.xml')
-
-window.show()
-
-# Execute event loop
-app.exec()
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
