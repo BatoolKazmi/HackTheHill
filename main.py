@@ -105,7 +105,7 @@ class VideoThread(QThread):
         Value = 3
 
         # Load the model
-        weights = os.path.join(directory, "face_detection_yunet_2023mar.onnx")
+        weights = os.path.join(directory, "assets/face_detection_yunet_2023mar.onnx")
         face_detector = cv2.FaceDetectorYN.create(weights, "", (0, 0))
 
         # Initialize timers for on-screen and off-screen states
