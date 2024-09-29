@@ -17,7 +17,7 @@ class MainWindow(QWidget):
         super().__init__()
 
         # Window Parameters
-        self.setWindowTitle("My App")
+        self.setWindowTitle("FocoBuddy")
         self.display_width = 640
         self.display_height = 480
 
@@ -73,7 +73,7 @@ class VideoThread(QThread):
 
     def run(self):
         # capture from web cam
-        cap = cv2.VideoCapture(1)
+        cap = cv2.VideoCapture(0)
         while self._run_flag:
             ret, cv_img = cap.read()
             if ret:

@@ -27,10 +27,10 @@ class TimerPanel(QWidget):
         self.duration_input.setRange(1, 120)  # Allow user to set timer from 1 to 120 minutes
         self.duration_input.setSuffix(" min")  # Suffix for the input
         self.duration_input.setValue(25)  # Default value
+        self.duration_input.setStyleSheet("QSpinBox { color: #FFC107; }")
 
         # Timer display
         self.time_display = QLabel(self.format_time(self.current_time), self)
-        # self.time_display.setStyleSheet("font-size: 30px; color: black;")
         self.time_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Buttons for the timer
@@ -71,7 +71,6 @@ class TimerPanel(QWidget):
             self.timer.stop()
             self.time_display.setText("Work Time Ended!")
             self.show_notification("Work Time Ended!", "Time's up! Take a break!")
-            # self.main_window.setStyleSheet("background-color: red;")  # Change background color
 
     def start_timer(self):
         """Starts the countdown."""
@@ -135,18 +134,3 @@ class SideMenu(QWidget):
 
         # Set the horizontal layout as the main layout
         self.setLayout(mainLayout)
-
-        # Set styles for the main application window
-        # self.setStyleSheet('''
-        #     QPushButton, QLabel {
-        #         color: black;  
-        #     }
-        #     QPushButton {
-        #         background-color: #ffb3df;  
-        #         color: black;
-        #     }
-        #     QPushButton::hover {
-        #         background-color: #d260ff;
-        #         color: white;
-        #     }
-        # ''')
