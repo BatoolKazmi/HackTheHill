@@ -12,6 +12,7 @@ const uint8_t trig = 9;
 
 // func def 
 double getDistanceFromSensor();
+void readIncomingSignalFromMaster();
 // end of func def
 
 
@@ -22,11 +23,14 @@ void setup(){
   pinMode(led_pin, OUTPUT);
   pinMode(echo, INPUT); 
   pinMode(trig, OUTPUT); digitalWrite(trig, LOW); 
+  pinMode(A0, OUTPUT);
+
 
   // end of init setup
 }
 
 void loop(){
+  readIncomingSignalFromMaster(); // reads signal from main program 
   /*
     digitalWrite(LED_PIN, HIGH);
     Serial.println(LED_PIN);
@@ -63,3 +67,23 @@ void loop(){
   return dist; // 
 }
 
+
+void readIncomingSignalFromMaster(){
+  // Check if data is available on the serial port
+  if (Serial.available() > 0) {
+    // Read the incoming data
+    char incomingData = Serial.read();
+
+    // If the data is '1', turn on the LED
+    if (incomingData == '1') {
+      digitalWrite(A0, HIGH);
+    }
+    // If the data is '0', turn off the LED
+    else if (incomingData == '0') {
+      digitalWrite(A0, LOW);
+    }
+    else{
+      Serial.println("Incoming data is invalid!");
+    }
+  }
+}
