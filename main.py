@@ -97,7 +97,7 @@ class VideoThread(QThread):
     def run(self):
         # Open the capture
         directory = os.path.dirname(__file__)
-        capture = cv2.VideoCapture(1)  # Camera
+        capture = cv2.VideoCapture(0)  # Camera
         if not capture.isOpened():
             print("Camera not opened.")
             return
