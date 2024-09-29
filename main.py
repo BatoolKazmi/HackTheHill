@@ -13,7 +13,6 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QIcon, QPalette, QColor
 
-
 class Color(QWidget):
     def __init__(self, color):
         super(Color, self).__init__()
@@ -21,7 +20,6 @@ class Color(QWidget):
         palette = self.palette()
         palette.setColor(QPalette.ColorRole.Window, QColor(color))
         self.setPalette(palette)
-
 
 class TimerPanel(QWidget):
     def __init__(self, tray_icon, main_window):
@@ -120,10 +118,22 @@ class MyApp(QWidget):
         self.setWindowTitle('FocoBuddy')
 
         self.tray_icon = QSystemTrayIcon(self)
-        self.tray_icon.setIcon(QIcon('maps.ico')) 
+        # Use a default icon if 'maps.ico' is not found
+        try:
+            self.tray_icon.setIcon(QIcon('maps.ico'))  # Replace with a valid path if you have one
+        except Exception as e:
+            print(f"Icon loading failed: {e}")
+            self.tray_icon.setIcon(QIcon())  # Set a default icon
+
         self.tray_icon.setVisible(True)
 
-        self.setWindowIcon(QIcon('maps.ico'))
+        # Set the window icon
+        try:
+            self.setWindowIcon(QIcon('maps.ico'))
+        except Exception as e:
+            print(f"Window icon loading failed: {e}")
+            self.setWindowIcon(QIcon())  # Set a default icon
+
         self.resize(700, 500)  # width, height (the window size)
 
         # Create the main layout (Horizontal Layout)
