@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
     QMessageBox
 )
 from PyQt6.QtGui import QIcon, QPalette, QColor
+from qt_material import apply_stylesheet
 
 class Color(QWidget):
     def __init__(self, color):
@@ -40,7 +41,7 @@ class TimerPanel(QWidget):
 
         # Timer display
         self.time_display = QLabel(self.format_time(self.current_time), self)
-        self.time_display.setStyleSheet("font-size: 30px; color: white;")
+        # self.time_display.setStyleSheet("font-size: 30px; color: black;")
         self.time_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Buttons for the timer
@@ -81,13 +82,11 @@ class TimerPanel(QWidget):
             self.timer.stop()
             self.time_display.setText("Work Time Ended!")
             self.show_notification("Work Time Ended!", "Time's up! Take a break!")
-            self.main_window.setStyleSheet("background-color: red;")  # Change background color
 
     def start_timer(self):
         """Starts the countdown."""
         self.current_time = self.duration_input.value() * 60  # Convert minutes to seconds
         self.time_display.setText(self.format_time(self.current_time))
-        self.main_window.setStyleSheet("background-color: red;")  # Set background color for work time
         self.timer.start(1000)  # Start timer with 1 second interval
 
     def stop_timer(self):
@@ -101,7 +100,6 @@ class TimerPanel(QWidget):
         self.timer.stop()
         self.current_time = self.duration_input.value() * 60
         self.time_display.setText(self.format_time(self.current_time))
-        self.main_window.setStyleSheet("background-color: #5158ff;")  # Reset background color
 
     def show_notification(self, title, message):
         """Displays a notification dialog."""
@@ -149,35 +147,39 @@ class MyApp(QWidget):
         self.setLayout(mainLayout)
 
         # Set styles for the main application window
-        self.setStyleSheet('''
-            QPushButton, QLabel {
-                color: black;  
-            }
-            QPushButton {
-                background-color: #ffb3df;  
-                color: black;
-            }
-            QPushButton::hover {
-                background-color: #d260ff;
-                color: white;
-            }
-        ''')
+        # self.setStyleSheet('''
+        #     QPushButton, QLabel {
+        #         color: black;  
+        #     }
+        #     QPushButton {
+        #         background-color: #ffb3df;  
+        #         color: black;
+        #     }
+        #     QPushButton::hover {
+        #         background-color: #d260ff;
+        #         color: white;
+        #     }
+        # ''')
 
 # Initialize the application
 app = QApplication(sys.argv)
-app.setStyleSheet(''' 
-                  QWidget {
-                  font-size: 5em;      
-                  color: blue; 
-                  }
-                  QPushButton {
-                    font-size: 10em;
-                    background-color: yellow;   
-                  }
-''')
+# app.setStyleSheet(''' 
+#                   QWidget {
+#                   font-size: 5em;      
+#                   color: blue; 
+#                   }
+#                   QPushButton {
+#                     font-size: 10em;
+#                     background-color: yellow;   
+#                   }
+# ''')
 
 # Create the window
 window = MyApp()
+
+# setup stylesheet
+apply_stylesheet(app, theme='dark_amber.xml')
+
 window.show()
 
 # Execute event loop
