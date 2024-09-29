@@ -71,6 +71,7 @@ class TimerPanel(QWidget):
             self.timer.stop()
             self.time_display.setText("Work Time Ended!")
             self.show_notification("Work Time Ended!", "Time's up! Take a break!")
+            self.open_page2()  # Navigate to Page 2 when time runs out
 
     def start_timer(self):
         """Starts the countdown."""
@@ -98,6 +99,36 @@ class TimerPanel(QWidget):
         msg_box.setWindowTitle(title)
         msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
         msg_box.exec()
+
+    def open_page2(self):
+        """Navigate to Page 2."""
+        # self.main_window.vThread.pause()  # Pause video feed
+        self.page2 = Page2(self.main_window)  # Pass the main window instance
+        self.page2.show()  # Show Page 2
+        self.main_window.hide()  # Hide the main window
+
+class Page2(QWidget):
+    def init(self, parent=None):
+        super().init()
+        self.setWindowTitle("Page 2")
+        self.main_window = parent  # Store reference to main window
+
+        layout = QVBoxLayout()
+        label = QLabel("Additional information can go here.")
+        layout.addWidget(label)
+
+        # Button to go back to MainWindow
+        back_button = QPushButton("Back to Main", self)
+        back_button.clicked.connect(self.back_to_main)
+        layout.addWidget(back_button)
+
+        self.setLayout(layout)
+
+    def back_to_main(self):
+        """Close this page and return to MainWindow."""
+        self.close()  # Close Page2
+        self.main_window.vThread.resume()  # Resume video thread
+        self.main_window.show()  # Show the original MainWindow
 
 class SideMenu(QWidget):
     def __init__(self):
@@ -134,3 +165,18 @@ class SideMenu(QWidget):
 
         # Set the horizontal layout as the main layout
         self.setLayout(mainLayout)
+
+        # Set styles for the main application window
+        # self.setStyleSheet('''
+        #     QPushButton, QLabel {
+        #         color: black;  
+        #     }
+        #     QPushButton {
+        #         background-color: #ffb3df;  
+        #         color: black;
+        #     }
+        #     QPushButton::hover {
+        #         background-color: #d260ff;
+        #         color: white;
+        #     }
+        # ''')
