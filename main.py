@@ -97,7 +97,7 @@ class VideoThread(QThread):
     def run(self):
         # Open the capture
         directory = os.path.dirname(__file__)
-        capture = cv2.VideoCapture(1)  # Camera
+        capture = cv2.VideoCapture(0)  # Camera
         if not capture.isOpened():
             print("Camera not opened.")
             return
@@ -268,11 +268,12 @@ class VideoThread(QThread):
             cv2.destroyAllWindows()
 
         # capture from web cam
-        # cap = cv2.VideoCapture(1)
-        # while self._run_flag:
-        #     ret, cv_img = cap.read()
-        #     if ret:
-        #         self.change_pixmap_signal.emit(cv_img)
+
+        cap = cv2.VideoCapture(0)
+        while self._run_flag:
+            ret, cv_img = cap.read()
+            if ret:
+                self.change_pixmap_signal.emit(cv_img)
 
     def plot_pie_chart(self):
         # Prepare data for the pie chart
