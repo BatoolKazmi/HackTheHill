@@ -428,8 +428,17 @@ class Timer(QWidget):
             self.current_time -= 1
             self.time_display.setText(self.format_time(self.current_time))
         else:
+            self.analysis_state = 0
+            # Change button icon
+            self.start_pause_button.setIcon(QIcon("media/start.png"))
+
+            # Show fields
+            self.min_field.show()
+            self.sec_field.show()
+
+            # Hide display
+            self.time_display.hide()
             self.timer.stop()
-            self.time_display.setText("Work Time Ended!")
             self.show_notification("Work Time Ended!", "Time's up! Take a break!")
             # self.main_window.setStyleSheet("background-color: red;")  # Change background color
 
